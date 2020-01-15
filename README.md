@@ -1,4 +1,4 @@
-# ED_JogoCartas
+# Jogo de Cartas - ED1
 Criar um jogo de cartas usando os conceitos de Estrutura de Dados I, ( Estruturas, Fila, Pilha, Árvores)
 
 # Desenvolvimento
