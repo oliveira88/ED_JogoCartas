@@ -12,18 +12,17 @@ typedef struct TCarta{
 } TCarta;
 
 typedef struct Lista{
-	TCarta cartas;
+	TCarta cartas[5];
 	int nroElementos;
 } Lista;
 
-TCarta funcaoSorteiaDeovo(TCarta *cartas, Lista *lista);
+void sorteiaNumeros(int *vetor);
 
 void main(){
 
 	TCarta cartas[52];
 	Lista *lista;
-	
-	
+	int numSorteados[5];
 
 	FILE *arqCartas;
 	arqCartas = fopen("Cartas.txt", "r");
@@ -39,41 +38,45 @@ void main(){
 	}
 
 	srand(time(NULL));
-	printf("Deseja sortear uma mão? 1 - sim - 0 - nao");
-	scanf("%d", &n);
-    lista->nroElementos = 0;
-	if(n == 1){
-		
-		for(int i = 0; i < 5; i++){
-			lista->cartas = funcaoSorteiaDeovo(cartas,lista);
-			lista->nroElementos++;
+	do{
+		printf("Deseja sortear uma mão?\n1 - sim\n0 - nao\n");
+		scanf("%d", &n);
+		if(n == 1){
+			sorteiaNumeros(numSorteados);
+			for(int i = 0; i < 5; i++){
+				strcpy(lista->cartas[i].face ,cartas[numSorteados[i]].face);
+				lista->cartas[i].naipe = cartas[numSorteados[i]].naipe;
+				lista->cartas[i].valor = cartas[numSorteados[i]].valor;
+				strcpy(lista->cartas[i].nome, cartas[numSorteados[i]].nome);
+			}
+			for(int i = 0; i < 5; i++){
+				printf("%s %c %d %s\n", lista->cartas[i].face, lista->cartas[i].naipe, lista->cartas[i].valor, lista->cartas[i].nome);
+			}	
 		}
-	} 
-		
-	
-	
-	for(int i = 0; i < 5; i++){
-		printf("\n                CARTAS SORTEADA: %s %c %d %s\n", lista->cartas.face,lista->cartas.naipe,lista->cartas.valor,lista->cartas.nome);
-	}
+	}while(n == 1);
 	
 
 	fclose(arqCartas);
 }
 
-
-TCarta funcaoSorteiaDeovo(TCarta *cartas, Lista *lista){
+void sorteiaNumeros(int *vetor){
+	for(int i= 0; i < 5; i++){
+		vetor[i] = -1;
+	}
 	srand(time(NULL));
-		
-	int aleatorio = rand() % 52;
-		
-	for(int i = 0; i < 5; i++){
-		if(lista[i].cartas.naipe == cartas[aleatorio].naipe && lista[i].cartas.valor == cartas[aleatorio].valor ){
-			return funcaoSorteiaDeovo(cartas, lista);
-		}else{
-			return cartas[aleatorio];
+	int verifica = 0;
+	int i = 0;
+	while( i < 5 ){
+		int aleatorio = rand() % 52;
+		for(int j = 0; j < 5; j++){
+			if(vetor[j] == aleatorio){
+				verifica++;
+			}
+
+		}
+		if(verifica == 0 ){
+			vetor[i] = aleatorio;
+			i++;
 		}
 	}
-		
 }
-
-
