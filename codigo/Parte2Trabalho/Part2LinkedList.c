@@ -62,31 +62,10 @@ void main() {
     printf("Deseja sortear uma mao?\n1 - sim\n0 - nao\n");
     scanf("%d", &n);
     if (n == 1) {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 4; i < -1; i--) {
             insereLista(listaInicio, cartas[numSorteados[i]]);
-        } /*
-        listaInicio->carta = cartas[numSorteados[0]];
-        listaInicio->next = listaSegundo;
-
-        listaSegundo->carta = cartas[numSorteados[1]];
-        listaSegundo->next = listaTerceiro;
-
-        listaTerceiro->carta = cartas[numSorteados[2]];
-        listaTerceiro->next = listaQuarto;
-
-        listaQuarto->carta = cartas[numSorteados[3]];
-        listaQuarto->next = listaQuinto;
-
-        listaQuinto->carta = cartas[numSorteados[4]];
-		*/
+        }
         printaLista(listaInicio);
-        /*
-        printf("%d   %c\n", listaInicio->carta.valor, listaInicio->carta.naipe);
-        printf("%d   %c\n", listaSegundo->carta.valor, listaSegundo->carta.naipe);
-        printf("%d   %c\n", listaTerceiro->carta.valor, listaTerceiro->carta.naipe);
-        printf("%d   %c\n", listaQuarto->carta.valor, listaQuarto->carta.naipe);
-        printf("%d   %c\n", listaQuinto->carta.valor, listaQuinto->carta.naipe);
-    */
     }
     /*
     while (n != 0) {
