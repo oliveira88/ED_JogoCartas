@@ -22,38 +22,76 @@ typedef struct Recursos {
 
 } Recursos;
 
-void sorteiaNumeros(int *vetor);
+typedef struct Tarefa {
+    int turnoAparecimento, premio , prazo, recursosCopas;
+    int recursosEspadas, recursosPaus, recursosOuros;
+    struct Tarefa *next;
+} Tarefa;
+
+void sorteiaNumeros(int *vetor, int qtd);
 void trocaCarta(int destino, int origem, Lista *l);
 void insereLista(Lista *l, TCarta carta);
 void deleteLista(Lista *l, int qtd, Recursos *recursos);
 void printaLista(Lista *l);
 int tamanhoLista(Lista *l);
-void inicializaBonus(Recursos *bonus);
+void inicializaBonus(Recursos *recursos);
 void printaRecursos(Recursos *recursos);
+void inicializaTarefas(Tarefa *t, FILE *arqTarefas);
+void printaTarefas(Tarefa *tarefas);
 
 void main() {
     TCarta cartas[52];
     Lista *listaInicio;
     Recursos recursos;
+    Tarefa *tarefas;
+    int nivel;
+    int turnoAtual = 0;
+
     inicializaBonus(&recursos);
 
     listaInicio = NULL;
     int numSorteados[5];
-
     listaInicio = (Lista *)malloc(sizeof(struct Lista));
 
-    FILE *arqCartas;
+    tarefas = (Tarefa *)malloc(sizeof(struct Tarefa));
+    tarefas->next = NULL;
+
+    
+    
+
+    FILE *arqCartas, *arqTarefas;
     arqCartas = fopen("Cartas.txt", "r");
-    int n, i = 0;
-    if (arqCartas == NULL)
-        printf("Nenhum arquivo\n");
+    printf("Selecione o nivel\n1 - Acefalo\t2 - Medio\t3 - Dificil\n");
+    scanf("%d", &nivel);
+    if (nivel == 1) {
+        arqTarefas = fopen("tarefasF.txt", "r");
+    } else if (nivel == 2) {
+        arqTarefas = fopen("tarefasM.txt", "r");
+    } else if (nivel == 3) {
+        arqTarefas = fopen("tarefasD.txt", "r");
+    }
+
+    int n, i = 0, j = 0;
+
+    inicializaTarefas(tarefas, arqTarefas);
+
+    if (arqCartas == NULL) {
+        printf("Cartas.txt nao encontrado\n");
+    }
+    if (arqTarefas == NULL) {
+        printf("Tarefas.txt nao encontrado\n");
+    }
 
     while (!feof(arqCartas)) {
         fscanf(arqCartas, "%s %c %d %[^\n]s", cartas[i].face, &cartas[i].naipe, &cartas[i].valor, cartas[i].nome);
 
         i++;
     }
-    sorteiaNumeros(numSorteados);
+
+    
+
+    printaTarefas(tarefas);
+    sorteiaNumeros(numSorteados, 5);
 
     srand(time(NULL));
 
@@ -64,49 +102,62 @@ void main() {
             insereLista(listaInicio, cartas[numSorteados[i]]);
         }
         printaLista(listaInicio);
+        turnoAtual++;
     }
 
+    int totalDescarte = 0;
     while (n != 0) {
-        printf("O que deseja fazer?\n2 - Trocar cartas\n3 - Descartar cartas\n0 - Sair\n");
+        int qtdDescarte;
+        printf("O que deseja fazer?\n2 - Trocar cartas\n3 - Descartar cartas\n4 - Finalizar turno\n0 - Sair\n");
         scanf("%d", &n);
         if (n == 2) {
             int carta1, carta2;
-            printf("Qual cartas quieres trocar de posicao: ");
+            printf("Qual cartas deseja trocar de posicao: ");
             scanf("%d", &carta1);
             scanf("%d", &carta2);
             trocaCarta(carta1, carta2, listaInicio);
             printaLista(listaInicio);
         }
         if (n == 3) {
-            int qtdDescarte;
             printf("Quantas cartas deseja descartar: ");
             scanf("%d", &qtdDescarte);
+            totalDescarte += qtdDescarte;
             deleteLista(listaInicio, qtdDescarte, &recursos);
             printaLista(listaInicio);
             printaRecursos(&recursos);
         }
+        if (n == 4)
+        {
+            turnoAtual++;
+            if(totalDescarte > 0){
+                sorteiaNumeros(numSorteados, totalDescarte);
+                for (int i = totalDescarte-1 ; i > -1; i--) {
+                    insereLista(listaInicio, cartas[numSorteados[i]]);
+                }
+            }
+            printf("Turno atual: %d\n", turnoAtual);
+            printaLista(listaInicio);
+            totalDescarte = 0;
+        }
+        
     }
 
     fclose(arqCartas);
     free(listaInicio);
-    /*
-    free(listaSegundo);
-    free(listaTerceiro);
-    free(listaQuarto);
-    free(listaQuinto);
-	*/
+    free(tarefas);
+    fclose(arqTarefas);
 }
 
-void sorteiaNumeros(int *vetor) {
+void sorteiaNumeros(int *vetor, int qtd) {
     for (int i = 0; i < 5; i++) {
         vetor[i] = -1;
     }
     srand(time(NULL));
     int verifica = 0;
     int i = 0;
-    while (i < 5) {
+    while (i < qtd) {
         int aleatorio = rand() % 52;
-        for (int j = 0; j < 5; j++) {
+        for (int j = 0; j < qtd; j++) {
             if (vetor[j] == aleatorio) {
                 verifica++;
             }
@@ -136,6 +187,13 @@ void trocaCarta(int destino, int origem, Lista *l) {
     *cartaDestino = *cartaOrigem;
     *cartaOrigem = *aux;
     free(aux);
+    system("@cls|clear");
+}
+
+void deleteTarefa(Tarefa *t){
+    Tarefa *a = t;
+    t = t->next;
+    free(a);
 }
 
 void insereLista(Lista *l, TCarta carta) {
@@ -214,49 +272,60 @@ void deleteLista(Lista *l, int qtd, Recursos *recursos) {
                     quadra++;
                 }
             }
+        }
+    }
 
-            if (descartadas[i].valor + 1 == descartadas[j].valor) {
-                sequencia++;
+    int seq[qtd];
+    for (int i = 0; i < qtd; i++) {
+        seq[i] = -1;
+    }
+    int k = 0;
+    for (int i = 0; i < (qtd - 1); i++) {
+        if (descartadas[i].valor == (descartadas[i + 1].valor - 1)) {
+            if (descartadas[i].valor != seq[k]) {
+                if (k != 0) {
+                    k++;
+                }
+                seq[k] = descartadas[i].valor;
+                k++;
+                seq[k] = descartadas[i + 1].valor;
+            } else {
+                k++;
+                seq[k] = descartadas[i + 1].valor;
             }
         }
     }
-
+    for (int i = 0; i < qtd; i++) {
+        if (seq[i] != -1) {
+            sequencia++;
+        }
+    }
     if (sequencia > 0) {
-        //printf("Vc fez uma sequencia de tamanho %d\n", sequencia + 1);
-        total = total + (2 * (sequencia + 1));
+        printf("Vc fez uma sequencia de tamanho %d\n", sequencia);
+        total = total + (2 * sequencia);
     }
     if (msmNaipe > 0) {
-        //printf("Vc fez um mesmo naipe de tamanho %d\n", msmNaipe);
+        printf("Vc fez um mesmo naipe de tamanho %d\n", msmNaipe);
         total = total + (3 * msmNaipe);
     }
     if (par > 0) {
-        //printf("Vc fez %d par(es)\n", par);
+        printf("Vc fez %d par(es)\n", par);
         total = total + (2 * par);
     }
     if (trinca > 0) {
-        //printf("Vc fez uma trinca\n");
+        printf("Vc fez uma trinca\n");
         total = total + 50;
     }
     if (quadra > 0) {
-        //printf("Vc fez uma quadra\n");
+        printf("Vc fez uma quadra\n");
         total = total + 20;
     }
+    system("@cls|clear");
     if (total > 0) {
         int bonus;
-        printf("Voce fez um bonus de %d\nPara onde deseja por seu bonus: 1 - Copas, 2 - Espadas, 3 - Paus, 4 - Ouros?\n", total);
+        printf("Voce fez um bonus de %d\n\nPara onde deseja por seu bonus?: 1 - Copas, 2 - Espadas, 3 - Paus, 4 - Ouros\n", total);
         scanf("%d", &bonus);
-        /*
-        if (bonus == 'C' || bonus == 'c') {
-            recursos->copas += total;
-        } else if (bonus == 'E' || bonus == 'e') {
-            recursos->espadas += total;
-        } else if (bonus == 'P' || bonus == 'p') {
-            recursos->paus += total;
-        } else if (bonus == 'O' || bonus == 'o') {
-            recursos->ouros += total;
-        }
-        */
-
+        system("@cls|clear");
         if (bonus == 1) {
             recursos->copas += total;
         } else if (bonus == 2) {
@@ -281,20 +350,58 @@ int tamanhoLista(Lista *l) {
 void printaLista(Lista *l) {
     Lista *aux;
     aux = l->next;
+
     printf("Sua mao:\n");
     while (aux != NULL) {
-        printf("%c  %d \n", aux->carta.naipe, aux->carta.valor);
+        printf("%s - %c\n", aux->carta.face, aux->carta.naipe);
         aux = aux->next;
     }
+
     printf("\n");
 }
 
 void inicializaBonus(Recursos *recursos) {
+  
     recursos->copas = 0;
     recursos->espadas = 0;
     recursos->paus = 0;
     recursos->ouros = 0;
 }
 void printaRecursos(Recursos *recursos) {
-    printf("Seus recursos são:\nC - %d\nE - %d\nP - %d\nO - %d\n", recursos->copas, recursos->espadas, recursos->paus, recursos->ouros);
+    printf("Seus recursos são:\nC - %d\nE - %d\nP - %d\nO - %d\n\n", recursos->copas, recursos->espadas, recursos->paus, recursos->ouros);
+}
+
+void inicializaTarefas(Tarefa *t, FILE *arqTarefas){
+    while (!feof(arqTarefas)) {
+        // Tarefa *tarefas;
+        // tarefas = (Tarefa *)malloc(sizeof(Tarefa)); 
+        
+        // fscanf(arqTarefas, "%d %d %d %d %d %d %d", &tarefas->turnoAparecimento, &tarefas->prazo, &tarefas->recursosPaus,
+        //        &tarefas->recursosEspadas, &tarefas->recursosOuros, &tarefas->recursosCopas, &tarefas->premio);
+        //        printf("");
+        // while(t->next != NULL)
+        //     t = t->next;
+  
+        //     t->next = tarefas;
+
+            Tarefa *p, *q, *nova;
+            nova = malloc (sizeof (Tarefa));
+            fscanf(arqTarefas, "%d %d %d %d %d %d %d", &nova->turnoAparecimento, &nova->prazo, &nova->recursosPaus,
+                &nova->recursosEspadas, &nova->recursosOuros, &nova->recursosCopas, &nova->premio);
+            p = t;
+            q = t->next;
+            while (q != NULL) {
+                p = q;
+                q = q->next;
+            }
+            nova->next = q;
+            p->next = nova;
+    }
+}
+
+    void printaTarefas (Tarefa *le) {
+        Tarefa *p;
+        for (p = le->next; p != NULL && (p->turnoAparecimento > 0 && p->turnoAparecimento <= 10); p = p->next){
+            printf ("%d %d\n", p->turnoAparecimento, p->premio);
+        }
 }
