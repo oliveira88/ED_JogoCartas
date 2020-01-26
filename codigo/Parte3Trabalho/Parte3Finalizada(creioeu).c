@@ -41,6 +41,8 @@ void inicializaTarefas(Tarefa **t, FILE *arqTarefas);
 
 void printaTarefas(Tarefa *tarefa, int turnoAtual);
 void cumpreTarefas(Recursos *recursos, Tarefa **tarefas);
+void freeTarefas(Tarefa **tarefas);
+void freeLista(Lista **lista);
 
 void main() {
     TCarta cartas[52];
@@ -142,8 +144,10 @@ void main() {
     }
 
     fclose(arqCartas);
-    free(listaInicio);
-    free(tarefas);
+    freeLista(&listaInicio);
+    freeTarefas(&tarefas);
+    //free(listaInicio);
+    //free(tarefas);
     fclose(arqTarefas);
 }
 
@@ -404,4 +408,21 @@ void cumpreTarefas(Recursos *recursos, Tarefa **tarefas) {
         printf("Recursos insuficientes\n");
     }
     printaRecursos(recursos);
+}
+
+void freeTarefas(Tarefa **tarefas) {
+    Tarefa *aux;
+    while (*tarefas != NULL) {
+        aux = *tarefas;
+        (*tarefas) = (*tarefas)->next;
+        free(aux);
+    }
+}
+void freeLista(Lista **lista) {
+    Lista *aux;
+    while (*lista != NULL) {
+        aux = *lista;
+        (*lista) = (*lista)->next;
+        free(aux);
+    }
 }
