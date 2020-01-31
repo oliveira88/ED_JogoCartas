@@ -25,43 +25,53 @@ void sorteiaNumeros(int *vetor, int qtd) {
     }
 }
 
-void trocaCarta(int destino, int origem, Lista *l) {
+void trocaCarta(int destino, int origem, Lista **l) {
     TCarta *aux;
-    aux = (TCarta *)malloc(sizeof(TCarta));
-    TCarta *cartaDestino, *cartaOrigem;
+    aux = (TCarta*)malloc(sizeof(TCarta));
+    Lista *cartaDestino, *cartaOrigem;
 
-    while (l != NULL) {
-        if (l->cont == destino - 1) {
-            cartaDestino = &l->carta;
-        }
-        if (l->cont == origem - 1) {
-            cartaOrigem = &l->carta;
-        }
-        l = l->next;
+    cartaOrigem = *l;
+    cartaDestino = *l;
+    for (int m = 1; m < origem; m++)
+    {
+        cartaOrigem = (cartaOrigem)->next;
     }
-    *aux = *cartaDestino;
-    *cartaDestino = *cartaOrigem;
-    *cartaOrigem = *aux;
+
+    for (int m = 1; m < destino; m++)
+    {
+        cartaDestino = cartaDestino->next;
+    }
+
+    *aux = cartaOrigem->carta;
+    cartaOrigem->carta = cartaDestino->carta;
+    cartaDestino->carta = *aux;
+
     free(aux);
+
 }
 
-void insereLista(Lista *l, TCarta carta) {
-    Lista *novaLista;
+void insereLista(Lista **l, TCarta carta) {
+    Lista *novaLista, *aux;
     novaLista = (Lista *)malloc(sizeof(Lista));
+    novaLista->next = NULL;
     novaLista->carta = carta;
-    novaLista->cont = tamanhoLista(l);
-    novaLista->next = l->next;
-    l->next = novaLista;
+    if (*l == NULL) {
+         *l = novaLista;
+    } else {
+        for (aux = *l; aux->next != NULL; aux = aux->next)
+            ;
+        aux->next = novaLista;
+    }
 }
 
-void deleteLista(Lista *l, int qtd, struct Recursos *recursos) {
+void deleteLista(Lista **l, int qtd, Recursos *recursos) {
     TCarta descartadas[qtd];
     int qtdCopas = 0, qtdEspadas = 0, qtdPaus = 0, qtdOuros = 0;
     int par = 0, trinca = 0, quadra = 0;
     int sequencia = 0, msmNaipe = 0;
     int total = 0;
     for (int i = 0; i < qtd; i++) {
-        Lista *a = l->next;
+        Lista *a = (*l);
         descartadas[i] = a->carta;
         if (a->carta.naipe == 'C') {
             recursos->copas += a->carta.valor;
@@ -79,7 +89,7 @@ void deleteLista(Lista *l, int qtd, struct Recursos *recursos) {
             recursos->ouros += a->carta.valor;
             qtdOuros++;
         }
-        l->next = l->next->next;
+        (*l) = (*l)->next;
         free(a);
     }
 
@@ -116,8 +126,11 @@ void deleteLista(Lista *l, int qtd, struct Recursos *recursos) {
                     trinca++;
                     valorDaTrinca = descartadas[i].valor;
                 } else {
-                    trinca--;
-                    quadra++;
+                    if (i==0)
+                    {
+                        trinca--;
+                        quadra++;
+                    }  
                 }
             }
         }
@@ -170,32 +183,23 @@ void deleteLista(Lista *l, int qtd, struct Recursos *recursos) {
     }
     if (total > 0) {
         int bonus;
-        printf("Voce fez um bonus de %d\n\nPara onde deseja por seu bonus?: 1 - Copas, 2 - Espadas, 3 - Paus, 4 - Ouros\n", total);
+        printf("Voce fez um bonus de %d\n\nPara onde deseja por seu bonus?: 1 - Paus, 2 - Espadas, 3 - Ouros, 4 - Copas\n", total);
         scanf("%d", &bonus);
         if (bonus == 1) {
-            recursos->copas += total;
+            recursos->paus += total;
         } else if (bonus == 2) {
             recursos->espadas += total;
         } else if (bonus == 3) {
-            recursos->paus += total;
-        } else if (bonus == 4) {
             recursos->ouros += total;
+        } else if (bonus == 4) {
+            recursos->copas += total;
         }
     }
 }
 
-int tamanhoLista(Lista *l) {
-    int n = 5;
-    while (l != NULL) {
-        n--;
-        l = l->next;
-    }
-    return n;
-}
-
 void printaMao(Lista *l) {
     Lista *aux;
-    aux = l->next;
+    aux = l;
 
     printf("Sua mao:\n");
     while (aux != NULL) {
@@ -204,4 +208,13 @@ void printaMao(Lista *l) {
     }
 
     printf("\n\n\n");
+}
+
+void freeLista(Lista **lista) {
+    Lista *aux;
+    while (*lista != NULL) {
+        aux = *lista;
+        (*lista) = (*lista)->next;
+        free(aux);
+    }
 }

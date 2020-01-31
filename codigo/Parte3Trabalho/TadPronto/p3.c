@@ -3,32 +3,24 @@
 #include <string.h>
 #include <time.h>
 #include "mao.h"
-#include "recursos.h"
-#include "tarefas.h"
-#ifdef LINUX
-#include <ncurses.h>
-#else
-#include <conio.h>
-#endif
 
 void main() {
     TCarta cartas[52];
     Lista *listaInicio;
-    struct Recursos recursos;
+    Recursos recursos;
     Tarefa *tarefas;
     int nivel;
     int turnoAtual = 1;
 
-    inicializaRecursos(&recursos);
+    inicializaBonus(&recursos);
 
     listaInicio = NULL;
     int numSorteados[5];
-    listaInicio = (Lista *)malloc(sizeof(struct Lista));
 
     tarefas = NULL;
     FILE *arqCartas, *arqTarefas;
     arqCartas = fopen("Cartas.txt", "r");
-    printf("Selecione o nivel\n1 - Acefalo\t2 - Medio\t3 - Dificil\n");
+    printf("Selecione o nivel\n1 - Facil\t2 - Medio\t3 - Dificil\t4 - Expert\n");
     scanf("%d", &nivel);
     if (nivel == 1) {
         arqTarefas = fopen("tarefasF.txt", "r");
@@ -36,6 +28,8 @@ void main() {
         arqTarefas = fopen("tarefasM.txt", "r");
     } else if (nivel == 3) {
         arqTarefas = fopen("tarefasD.txt", "r");
+    } else if (nivel == 4) {
+        arqTarefas = fopen("tarefasI.txt", "r");
     }
 
     int n, i = 0;
@@ -60,14 +54,15 @@ void main() {
     printf("Deseja sortear uma mao?\n1 - sim\n0 - nao\n");
     scanf("%d", &n);
     if (n == 1) {
-        for (int i = 4; i > -1; i--) {
-            insereLista(listaInicio, cartas[numSorteados[i]]);
-        }
+         for (int i = 0; i < 5; i++) {
+             insereLista(&listaInicio, cartas[numSorteados[i]]);
+         }
+        printf("\nTurno atual: %d\n", turnoAtual);
+        printaTarefas(tarefas, turnoAtual);
         printaRecursos(&recursos);
         printaMao(listaInicio);
     }
 
-    printaTarefas(tarefas, turnoAtual);
     int totalDescarte = 0;
     while (n != 0) {
         int qtdDescarte;
@@ -75,22 +70,33 @@ void main() {
         scanf("%d", &n);
         if (n == 1) {
             int carta1, carta2;
-            printf("Qual cartas deseja trocar de posicao: ");
+            printf("Quais cartas deseja trocar de posicao?\n");
+            printf("Carta: ");
             scanf("%d", &carta1);
+            printf("Carta: ");
             scanf("%d", &carta2);
-            trocaCarta(carta1, carta2, listaInicio);
+            trocaCarta(carta1, carta2, &listaInicio);
+            printf("\nTurno atual: %d\n", turnoAtual);
+            printaTarefas(tarefas, turnoAtual);
+            printaRecursos(&recursos);
             printaMao(listaInicio);
         }
         if (n == 2) {
             printf("Quantas cartas deseja descartar: ");
             scanf("%d", &qtdDescarte);
             totalDescarte += qtdDescarte;
-            deleteLista(listaInicio, qtdDescarte, &recursos);
-            printaMao(listaInicio);
+            deleteLista(&listaInicio, qtdDescarte, &recursos);
+            printf("\nTurno atual: %d\n", turnoAtual);
+            printaTarefas(tarefas, turnoAtual);
             printaRecursos(&recursos);
+            printaMao(listaInicio);
         }
         if (n == 3) {
-            cumpreTarefas(&recursos, &tarefas);
+            cumpreTarefas(&recursos, &tarefas, turnoAtual);
+            printf("\nTurno atual: %d\n", turnoAtual);
+            printaTarefas(tarefas, turnoAtual);
+            printaRecursos(&recursos);
+            printaMao(listaInicio);
         }
         if (n == 4) {
             printf("FATAL ERROR\n");
@@ -99,19 +105,21 @@ void main() {
             turnoAtual++;
             if (totalDescarte > 0) {
                 sorteiaNumeros(numSorteados, totalDescarte);
-                for (int i = totalDescarte - 1; i > -1; i--) {
-                    insereLista(listaInicio, cartas[numSorteados[i]]);
+                for (int i = 0; i < totalDescarte; i++) {
+                    insereLista(&listaInicio, cartas[numSorteados[i]]);
                 }
             }
-            printf("Turno atual: %d\n", turnoAtual);
+            printf("\nTurno atual: %d\n", turnoAtual);
+            verificaPrazoTarefa(&tarefas, turnoAtual);
+            printaTarefas(tarefas, turnoAtual);
+            printaRecursos(&recursos);
             printaMao(listaInicio);
             totalDescarte = 0;
-            printaTarefas(tarefas, turnoAtual);
         }
     }
 
     fclose(arqCartas);
-    free(listaInicio);
-    free(tarefas);
+    freeLista(&listaInicio);
+    freeTarefas(&tarefas);
     fclose(arqTarefas);
 }

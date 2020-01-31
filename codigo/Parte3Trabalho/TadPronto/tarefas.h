@@ -9,4 +9,6 @@ typedef struct Tarefa {
 
 void inicializaTarefas(Tarefa **t, FILE *arqTarefas);
 void printaTarefas(Tarefa *tarefa, int turnoAtual);
-void cumpreTarefas(struct Recursos *recursos, Tarefa **tarefas);
+void cumpreTarefas(Recursos *recursos, Tarefa **tarefas, int turnoAtual);
+void freeTarefas(Tarefa **tarefas);
+void verificaPrazoTarefa(Tarefa **tarefas, int turnoAtual);
