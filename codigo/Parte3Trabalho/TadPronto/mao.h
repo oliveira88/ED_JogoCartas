@@ -13,7 +13,7 @@ typedef struct Lista {
     struct Lista *next;
 } Lista;
 
-void sorteiaNumeros(int *vetor, int qtd);
+int sorteiaNumeros(TCarta *vetorDeCartas, int range);
 void trocaCarta(int destino, int origem, Lista **l);
 void insereLista(Lista **l, TCarta carta);
 void deleteLista(Lista **l, int qtd, Recursos *recursos);

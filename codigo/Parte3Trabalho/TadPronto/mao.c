@@ -4,25 +4,10 @@
 #include <string.h>
 #include <time.h>
 
-void sorteiaNumeros(int *vetor, int qtd) {
-    for (int i = 0; i < 5; i++) {
-        vetor[i] = -1;
-    }
+int sorteiaNumeros(TCarta *vetorDeCartas, int range) {
     srand(time(NULL));
-    int verifica = 0;
-    int i = 0;
-    while (i < qtd) {
-        int aleatorio = rand() % 52;
-        for (int j = 0; j < qtd; j++) {
-            if (vetor[j] == aleatorio) {
-                verifica++;
-            }
-        }
-        if (verifica == 0) {
-            vetor[i] = aleatorio;
-            i++;
-        }
-    }
+    int aleatorio = rand() % range;
+    return aleatorio;
 }
 
 void trocaCarta(int destino, int origem, Lista **l) {

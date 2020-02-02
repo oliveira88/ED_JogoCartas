@@ -2,22 +2,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "mao.h"
+#include "pilha.h"
 
 void main() {
     TCarta cartas[52];
     Lista *listaInicio;
     Recursos recursos;
     Tarefa *tarefas;
+    Pilha *monte, *descarte;
     int nivel;
+    int n = -1;
     int turnoAtual = 1;
+    int range = 52;
 
     inicializaBonus(&recursos);
 
     listaInicio = NULL;
-    int numSorteados[5];
-
     tarefas = NULL;
+    monte = NULL;
+    descarte = NULL;
+
     FILE *arqCartas, *arqTarefas;
     arqCartas = fopen("Cartas.txt", "r");
     printf("Selecione o nivel\n1 - Facil\t2 - Medio\t3 - Dificil\t4 - Expert\n");
@@ -32,7 +36,7 @@ void main() {
         arqTarefas = fopen("tarefasI.txt", "r");
     }
 
-    int n, i = 0;
+    int i = 0;
     inicializaTarefas(&tarefas, arqTarefas);
 
     if (arqCartas == NULL) {
@@ -47,21 +51,39 @@ void main() {
         i++;
     }
 
-    sorteiaNumeros(numSorteados, 5);
+    
 
-    srand(time(NULL));
+    for (int i = 0; i < 52; i++)
+    {
+        TCarta aux;
+        int numSorteado = sorteiaNumeros(cartas, range);        
+        TCarta carta = cartas[numSorteado];
+        printf("%d : %d %c\n", numSorteado, carta.valor, carta.naipe);
+        inserePilha(carta, &monte);
 
-    printf("Deseja sortear uma mao?\n1 - sim\n0 - nao\n");
-    scanf("%d", &n);
-    if (n == 1) {
-         for (int i = 0; i < 5; i++) {
-             insereLista(&listaInicio, cartas[numSorteados[i]]);
-         }
-        printf("\nTurno atual: %d\n", turnoAtual);
-        printaTarefas(tarefas, turnoAtual);
-        printaRecursos(&recursos);
-        printaMao(listaInicio);
+        aux = cartas[numSorteado];              //troca a carta sorteada com a ultima carta e sorteia até range --
+        cartas[numSorteado] = cartas[range-1];    //para que não sorteie cartas repetidas
+        cartas[range-1] = aux;
+        range--;
     }
+
+    
+    range = 52;
+    
+    for (int i = 0; i < 5; i++) {
+        Pilha *insereaux = monte;
+        while(insereaux->next != NULL){
+            insereaux = insereaux->next;
+        }
+        printf("%s", insereaux->carta.face);
+        insereLista(&listaInicio, insereaux->carta);
+        removePilha(&monte);
+    }
+     
+    printf("\nTurno atual: %d\n", turnoAtual);
+    printaTarefas(tarefas, turnoAtual);
+    printaRecursos(&recursos);
+    printaMao(listaInicio);
 
     int totalDescarte = 0;
     while (n != 0) {
@@ -85,6 +107,14 @@ void main() {
             printf("Quantas cartas deseja descartar: ");
             scanf("%d", &qtdDescarte);
             totalDescarte += qtdDescarte;
+            Lista *auxdescarte = listaInicio;
+
+            for (int i = 0; i < qtdDescarte; i++)
+            {
+                inserePilha(auxdescarte->carta, &descarte);
+                auxdescarte = auxdescarte->next;
+            }
+
             deleteLista(&listaInicio, qtdDescarte, &recursos);
             printf("\nTurno atual: %d\n", turnoAtual);
             printaTarefas(tarefas, turnoAtual);
@@ -104,9 +134,16 @@ void main() {
         if (n == 5) {
             turnoAtual++;
             if (totalDescarte > 0) {
-                sorteiaNumeros(numSorteados, totalDescarte);
                 for (int i = 0; i < totalDescarte; i++) {
-                    insereLista(&listaInicio, cartas[numSorteados[i]]);
+                    if (monte != NULL)
+                    {
+                        Pilha *insereaux = monte;
+                        while(insereaux->next != NULL){
+                            insereaux = insereaux->next;
+                        }
+                        insereLista(&listaInicio, insereaux->carta);
+                        removePilha(&monte);
+                    }  
                 }
             }
             printf("\nTurno atual: %d\n", turnoAtual);
