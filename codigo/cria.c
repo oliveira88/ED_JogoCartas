@@ -4,6 +4,7 @@
 
 #define TAM 52
 
+
 typedef struct TCarta{
     char face[2];
     char naipe;
