@@ -1,0 +1,7 @@
+gcc -c mao.c
+gcc -c recursos.c
+gcc -c tarefas.c
+gcc -c pilha.c
+gcc -c p4.c
+gcc -o p4.exe mao.o recursos.o tarefas.o pilha.o p4.o
+p4
