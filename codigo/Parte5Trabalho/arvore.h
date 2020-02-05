@@ -9,3 +9,4 @@ typedef struct Arvore
 
 void insereArvore(Arvore **arvore, TCarta carta);
 int calculaMenor(Arvore **arvore);
+void printaPontuacao(Recursos recursos, Tarefa *tarefasCumpridas, Tarefa *tarefasNaoCumpridas, int PMinac);

@@ -43,7 +43,7 @@ void printaTarefas(Tarefa *tarefa, int turnoAtual) {
     }
 }
 
-void cumpreTarefas(Recursos *recursos, Tarefa **tarefas, int turnoAtual) {
+void cumpreTarefas(Recursos *recursos, Tarefa **tarefas, Tarefa **tarefasCumpridas, int turnoAtual) {
     printf("\n");
     if(*tarefas != NULL){
         if ((*tarefas)->turnoAparecimento <= turnoAtual ) {
@@ -57,7 +57,15 @@ void cumpreTarefas(Recursos *recursos, Tarefa **tarefas, int turnoAtual) {
                 recursos->embaralhamento += (*tarefas)->premio;
                 Tarefa *aux = (*tarefas);
                 (*tarefas) = (*tarefas)->next;
-                free(aux);
+                aux->next = NULL;
+                Tarefa *auxc;
+                if (*tarefasCumpridas == NULL) {
+                    *tarefasCumpridas = aux;
+                } else {
+                    for (auxc = *tarefasCumpridas; auxc->next != NULL; auxc = auxc->next)
+                        ;
+                        auxc->next = aux;
+                }
             } else {
                 printf("Recursos insuficientes\n");
             }
@@ -78,13 +86,19 @@ void freeTarefas(Tarefa **tarefas) {
     }
 }
 
-void verificaPrazoTarefa(Tarefa **tarefas, int turnoAtual) {
-    Tarefa *aux;
+void verificaPrazoTarefa(Tarefa **tarefas, Tarefa **tarefasNaoCumpridas, int turnoAtual) {
+    Tarefa *aux, *auxn;
     if((*tarefas) != NULL){
         while((*tarefas)->prazo <= 0) {
             aux = *tarefas;
             (*tarefas) = (*tarefas)->next;
-            free(aux);
+            aux->next = NULL;
+            if (*tarefasNaoCumpridas == NULL) {
+                *tarefasNaoCumpridas = aux;
+            } else {
+                for (auxn = *tarefasNaoCumpridas; auxn->next != NULL; auxn = auxn->next);
+                auxn->next = aux;
+            }
             if ((*tarefas) == NULL)
             {
                     break;
