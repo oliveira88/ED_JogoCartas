@@ -207,10 +207,10 @@ void main() {
                     }  
                 }
             }
-            printf("\nTurno atual: %d\n", turnoAtual);
             verificaPrazoTarefa(&tarefas, &tarefasNaoCumpridas, turnoAtual);
             if (tarefas != NULL)
             {
+                printf("\nTurno atual: %d\n", turnoAtual);
                 printaTarefas(tarefas, turnoAtual);
                 printaRecursos(&recursos);
                 printf("\nMonte (%d)\t\t\tDescarte (%d)\n\n", tamanhoPilha(&monte), tamanhoPilha(&descarte));
